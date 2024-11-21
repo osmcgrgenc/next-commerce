@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { CheckoutForm } from '@/components/checkout/CheckoutForm';
-import { OrderSummary } from '@/components/profile/OrderSummary';
+import { OrderSummary } from '@/components/checkout/OrderSummary';
 import { Cart } from '@/modules/cart/domain/cart';
 import { Address } from '@/modules/users/domain/Address';
 import { PaymentInfo } from '@/modules/users/domain/Order';

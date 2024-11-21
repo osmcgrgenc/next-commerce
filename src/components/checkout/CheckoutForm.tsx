@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Address } from '@/modules/users/domain/Address';
 import { PaymentInfo } from '@/modules/users/domain/Order';
 
@@ -22,6 +22,9 @@ export function CheckoutForm({
   onPlaceOrder
 }: CheckoutFormProps) {
   const [addresses, setAddresses] = useState<Address[]>([]); // API'den gelecek
+  useEffect(() => {
+    setAddresses([]);
+  }, []);
 
   return (
     <div className="space-y-8">
@@ -29,20 +32,43 @@ export function CheckoutForm({
       <div className={`${currentStep !== 'address' && 'opacity-50'}`}>
         <h2 className="text-xl font-semibold mb-4">1. Teslimat Adresi</h2>
         {currentStep === 'address' ? (
-          <div className="grid gap-4 md:grid-cols-2">
-            {addresses.map((address) => (
-              <button
-                key={address.id}
-                onClick={() => onAddressSubmit(address)}
-                className="p-4 border rounded-lg text-left hover:border-purple-600"
+          addresses.length > 0 ? (
+            <div className="grid gap-4 md:grid-cols-2">
+              {addresses.map((address) => (
+                <button
+                  key={address.id}
+                  onClick={() => onAddressSubmit(address)}
+                  className="p-4 border rounded-lg text-left hover:border-purple-600"
+                >
+                  <h3 className="font-medium">{address.title}</h3>
+                  <p className="text-sm text-gray-600">
+                    {address.street}, {address.city}
+                  </p>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <form className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Adres Başlığı</label>
+                <input type="text" className="w-full p-2 border rounded-md" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Sokak/Cadde</label>
+                <input type="text" className="w-full p-2 border rounded-md" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Şehir</label>
+                <input type="text" className="w-full p-2 border rounded-md" />
+              </div>
+              <button 
+                type="submit"
+                className="w-full bg-purple-600 text-white py-2 rounded-md hover:bg-purple-700"
               >
-                <h3 className="font-medium">{address.title}</h3>
-                <p className="text-sm text-gray-600">
-                  {address.street}, {address.city}
-                </p>
+                Adresi Kaydet
               </button>
-            ))}
-          </div>
+            </form>
+          )
         ) : (
           selectedAddress && (
             <div className="p-4 bg-gray-50 rounded-lg">
@@ -118,8 +144,13 @@ export function CheckoutForm({
         <h2 className="text-xl font-semibold mb-4">3. Sipariş Onayı</h2>
         {currentStep === 'review' && (
           <div className="space-y-4">
-            <div className="p-4 bg-gray-50 rounded-lg">
+            <div className="p-4 bg-gray-50 rounded-lg space-y-2">
               <p>Tüm bilgilerinizi kontrol ettikten sonra siparişi onaylayabilirsiniz.</p>
+              {paymentInfo.method && (
+                <p className="text-sm text-gray-600">
+                  Ödeme Yöntemi: {paymentInfo.method === 'CREDIT_CARD' ? 'Kredi Kartı' : paymentInfo.method}
+                </p>
+              )}
             </div>
             <button
               onClick={onPlaceOrder}
