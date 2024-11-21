@@ -1,0 +1,111 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              Int       @id @default(autoincrement())
+  name            String
+  email           String    @unique
+  passwordHash    String
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime? @updatedAt
+  profileImageUrl String?
+  role            UserRole
+  addresses       Address[]
+  orders          Order[]
+  wishlist        Wishlist?
+}
+
+model Address {
+  id          Int     @id @default(autoincrement())
+  title       String
+  street      String
+  city        String
+  state       String?
+  postalCode  String
+  country     String
+  isDefault   Boolean
+  userId      Int
+  user        User    @relation(fields: [userId], references: [id])
+}
+
+model Order {
+  id          Int       @id @default(autoincrement())
+  userId      Int
+  productIds  String[]
+  totalAmount Float
+  status      OrderStatus
+  addressId   Int
+  payment     PaymentInfo
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime? @updatedAt
+  user        User      @relation(fields: [userId], references: [id])
+  address     Address    @relation(fields: [addressId], references: [id])
+}
+
+model Wishlist {
+  id       Int     @id @default(autoincrement())
+  products Product[]
+  userId   Int
+  user     User    @relation(fields: [userId], references: [id])
+}
+
+model Product {
+  id          Int       @id @default(autoincrement())
+  name        String
+  price       Float
+  description String?
+  images      String[]
+  stock       Int
+  categoryId  Int
+  brandId     Int
+  category    Category  @relation(fields: [categoryId], references: [id])
+  brand       Brand     @relation(fields: [brandId], references: [id])
+}
+
+model Brand {
+  id          Int     @id @default(autoincrement())
+  name        String
+  logoUrl     String?
+  description String?
+}
+
+model Category {
+  id              Int       @id @default(autoincrement())
+  name            String
+  parentCategory  Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  parentId       Int?
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELED
+}
+
+type PaymentInfo {
+  method       String
+  transactionId String
+  amountPaid   Float
+  status       String
+  paidAt       DateTime?
+}
