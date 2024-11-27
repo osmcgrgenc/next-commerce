@@ -14,98 +14,131 @@ datasource db {
 }
 
 model User {
-  id              Int       @id @default(autoincrement())
+  id              String        @id @default(uuid())
   name            String
-  email           String    @unique
+  email           String        @unique
   passwordHash    String
-  isActive        Boolean   @default(true)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime? @updatedAt
+  isActive        Boolean       @default(true)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime?     @updatedAt
   profileImageUrl String?
-  role            UserRole
+  role            String        // "USER" veya "ADMIN"
+  permissions     String        // JSON string olarak saklanacak
+  managedUsers    String        // JSON string olarak saklanacak
   addresses       Address[]
   orders          Order[]
   wishlist        Wishlist?
+  activityLog     ActivityLog[]
+}
+
+model ActivityLog {
+  id        String   @id @default(uuid())
+  activity  String
+  createdAt DateTime @default(now())
+  details   String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
 }
 
 model Address {
-  id          Int     @id @default(autoincrement())
-  title       String
-  street      String
-  city        String
-  state       String?
-  postalCode  String
-  country     String
-  isDefault   Boolean
-  userId      Int
-  user        User    @relation(fields: [userId], references: [id])
+  id         String   @id @default(uuid())
+  title      String
+  street     String
+  city       String
+  state      String?
+  postalCode String
+  country    String
+  isDefault  Boolean
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  orders     Order[]
 }
 
 model Order {
-  id          Int       @id @default(autoincrement())
-  userId      Int
-  productIds  String[]
-  totalAmount Float
-  status      OrderStatus
-  addressId   Int
-  payment     PaymentInfo
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime? @updatedAt
-  user        User      @relation(fields: [userId], references: [id])
-  address     Address    @relation(fields: [addressId], references: [id])
+  id            String   @id @default(uuid())
+  userId        String
+  products      Product[]
+  totalAmount   Float
+  status        String   // "PENDING", "PROCESSING", "SHIPPED", "DELIVERED", "CANCELED"
+  addressId     String
+  paymentMethod String   // "CREDIT_CARD", "PAYPAL", "BANK_TRANSFER"
+  transactionId String
+  amountPaid    Float
+  paymentStatus String   // "SUCCESS", "FAILED", "PENDING"
+  paidAt        DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime? @updatedAt
+  user          User     @relation(fields: [userId], references: [id])
+  address       Address  @relation(fields: [addressId], references: [id])
 }
 
 model Wishlist {
-  id       Int     @id @default(autoincrement())
+  id       String    @id @default(uuid())
   products Product[]
-  userId   Int
-  user     User    @relation(fields: [userId], references: [id])
+  userId   String    @unique
+  user     User      @relation(fields: [userId], references: [id])
 }
 
 model Product {
-  id          Int       @id @default(autoincrement())
+  id          String            @id @default(uuid())
   name        String
+  slug        String            @unique
   price       Float
   description String?
-  images      String[]
+  images      ProductImage[]
+  category    Category          @relation(fields: [categoryId], references: [id])
+  categoryId  String
+  brand       Brand             @relation(fields: [brandId], references: [id])
+  brandId     String
   stock       Int
-  categoryId  Int
-  brandId     Int
-  category    Category  @relation(fields: [categoryId], references: [id])
-  brand       Brand     @relation(fields: [brandId], references: [id])
+  isActive    Boolean           @default(true)
+  featured    Boolean           @default(false)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  variations  ProductVariation[]
+  orders      Order[]
+  wishlists   Wishlist[]
+}
+
+model ProductImage {
+  id        String  @id @default(uuid())
+  url       String
+  alt       String
+  isPrimary Boolean @default(false)
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+}
+
+model ProductVariation {
+  id        String            @id @default(uuid())
+  name      String
+  options   ProductVarOption[]
+  productId String
+  product   Product           @relation(fields: [productId], references: [id])
+}
+
+model ProductVarOption {
+  id                String          @id @default(uuid())
+  name              String
+  productVariation  ProductVariation @relation(fields: [productVariationId], references: [id])
+  productVariationId String
 }
 
 model Brand {
-  id          Int     @id @default(autoincrement())
+  id          String    @id @default(uuid())
   name        String
+  slug        String    @unique
   logoUrl     String?
   description String?
+  products    Product[]
 }
 
 model Category {
-  id              Int       @id @default(autoincrement())
+  id              String     @id @default(uuid())
   name            String
+  slug            String     @unique
+  parentId        String?
   parentCategory  Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
-  parentId       Int?
-}
-
-enum UserRole {
-  USER
-  ADMIN
-}
-
-enum OrderStatus {
-  PENDING
-  PROCESSING
-  SHIPPED
-  DELIVERED
-  CANCELED
-}
-
-type PaymentInfo {
-  method       String
-  transactionId String
-  amountPaid   Float
-  status       String
-  paidAt       DateTime?
+  childCategories Category[] @relation("CategoryHierarchy")
+  products        Product[]
 }
