@@ -20,10 +20,10 @@ export function UserNav() {
   if (!session) {
     return (
       <div className="flex items-center gap-4">
-        <Link href="/auth/login">
+        <Link href="/login">
           <Button variant="ghost">Giriş Yap</Button>
         </Link>
-        <Link href="/auth/register">
+        <Link href="/register">
           <Button>Üye Ol</Button>
         </Link>
       </div>
