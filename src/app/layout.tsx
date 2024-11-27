@@ -1,6 +1,4 @@
 import localFont from "next/font/local";
-import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
 import "./globals.css";
 import { Metadata } from 'next';
 
@@ -28,11 +26,9 @@ export default function RootLayout({
   return (
     <html lang="tr">
     <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}>
-      <Header />
       <main className="flex-grow">
         {children}
       </main>
-      <Footer />
     </body>
   </html>
   );
