@@ -2,6 +2,7 @@ import NextAuth, { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import { AdminPermission, AdminUser } from '@/domain/entities/User';
 
 const prisma = new PrismaClient();
 
@@ -78,7 +79,7 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           name: user.name,
           role: user.role,
-          permissions: (user as any).permissions
+          permissions: (user as AdminUser).permissions
         };
       }
     })
@@ -88,7 +89,7 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.role = user.role;
         if (user.role === 'ADMIN') {
-          token.permissions = user.permissions;
+          token.permissions = (user as AdminUser).permissions;
         }
       }
       return token;
@@ -97,7 +98,7 @@ export const authOptions: NextAuthOptions = {
       if (session?.user) {
         session.user.role = token.role;
         if (token.role === 'ADMIN') {
-          session.user.permissions = token.permissions;
+          session.user.permissions = token.permissions as AdminPermission[];
         }
       }
       return session;

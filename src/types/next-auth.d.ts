@@ -8,6 +8,7 @@ declare module 'next-auth' {
   interface Session {
     user: User & {
       role: 'ADMIN' | 'CUSTOMER';
+      permissions: AdminPermission[];
     };
   }
 }
