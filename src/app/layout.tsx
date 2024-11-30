@@ -1,12 +1,6 @@
 import localFont from "next/font/local";
 import "./globals.css";
 import { Metadata } from "next";
-import Link from "next/link";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
-import { UserNav } from "@/components/ui/user-nav";
-import { MainNav } from "@/components/ui/main-nav";
-import { SearchBar } from "@/components/ui/search-bar";
-import { Providers } from "./providers";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -34,98 +28,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
       >
-        <Providers>
-        <div className="relative min-h-screen bg-background">
-          <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <div className="container flex h-20 items-center">
-              <div className="flex items-center space-x-12">
-                {/* Logo placeholder */}
-                <div className="h-10 w-32 bg-muted rounded-md" />
-
-                <MainNav />
-              </div>
-
-              <div className="ml-auto flex items-center space-x-6">
-                <SearchBar />
-                <ThemeToggle />
-                <UserNav />
-              </div>
-            </div>
-          </header>
-
-          <main className="flex-1">{children}</main>
-
-          <footer className="border-t bg-background">
-            <div className="container py-16 grid grid-cols-4 gap-8">
-              <div className="space-y-4">
-                <h4 className="text-lg font-semibold">Hakkımızda</h4>
-                <ul className="space-y-2 text-muted-foreground">
-                  <li>
-                    <Link href="/about">Şirket Bilgisi</Link>
-                  </li>
-                  <li>
-                    <Link href="/careers">Kariyer</Link>
-                  </li>
-                  <li>
-                    <Link href="/press">Basın</Link>
-                  </li>
-                </ul>
-              </div>
-
-              <div className="space-y-4">
-                <h4 className="text-lg font-semibold">Müşteri Hizmetleri</h4>
-                <ul className="space-y-2 text-muted-foreground">
-                  <li>
-                    <Link href="/contact">İletişim</Link>
-                  </li>
-                  <li>
-                    <Link href="/shipping">Kargo Bilgileri</Link>
-                  </li>
-                  <li>
-                    <Link href="/returns">İade Koşulları</Link>
-                  </li>
-                </ul>
-              </div>
-
-              <div className="space-y-4">
-                <h4 className="text-lg font-semibold">Yasal</h4>
-                <ul className="space-y-2 text-muted-foreground">
-                  <li>
-                    <Link href="/privacy">Gizlilik Politikası</Link>
-                  </li>
-                  <li>
-                    <Link href="/terms">Kullanım Koşulları</Link>
-                  </li>
-                  <li>
-                    <Link href="/gdpr">KVKK</Link>
-                  </li>
-                </ul>
-              </div>
-
-              <div className="space-y-4">
-                <h4 className="text-lg font-semibold">Sosyal Medya</h4>
-                <ul className="space-y-2 text-muted-foreground">
-                  <li>
-                    <Link href="#">Instagram</Link>
-                  </li>
-                  <li>
-                    <Link href="#">Facebook</Link>
-                  </li>
-                  <li>
-                    <Link href="#">Twitter</Link>
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            <div className="container py-6 border-t">
-              <p className="text-center text-sm text-muted-foreground">
-                © 2024 Luxury Store. Tüm hakları saklıdır.
-              </p>
-            </div>
-          </footer>
-        </div>
-        </Providers>
+       {children}
       </body>
     </html>
   );
