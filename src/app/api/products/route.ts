@@ -1,72 +1,69 @@
-import { ProductService } from '@/application/services/ProductService';
-import { PrismaProductRepository } from '@/infrastructure/repositories/PrismaProductRepository';
-import { PaginatedResponse, SingleResponse, ErrorResponse } from '@/domain/types/responses';
-import { ProductResponse } from '@/domain/types/product';
+import { NextResponse } from "next/server";
+import { PrismaProductRepository } from "@/infrastructure/repositories/PrismaProductRepository";
+import { PaginatedResponse, ErrorResponse, SingleResponse } from "@/domain/types/responses";
+import { Product } from "@/domain/entities/Product";
 
 const productRepository = new PrismaProductRepository();
-const productService = new ProductService(productRepository);
 
-export async function GET(
-  request: Request
-): Promise<Response> {
+export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const page = Number(searchParams.get('page')) || 1;
-    const limit = Number(searchParams.get('limit')) || 10;
+    const page = Number(searchParams.get("page")) || 1;
+    const limit = Number(searchParams.get("limit")) || 10;
+    const search = searchParams.get("search") || "";
 
-    const products = await productService.getAllProducts({ page, limit });
-    
-    const response: PaginatedResponse<ProductResponse> = {
+    const { items, total } = await productRepository.findAll({
+      skip: (page - 1) * limit,
+      limit,
+      search
+    });
+
+    const response: PaginatedResponse<Product> = {
       success: true,
-      message: 'Ürünler başarıyla getirildi',
-      data: products.items,
-      meta: {
-        total: products.total,
-        page: products.page,
-        limit: products.limit,
-        totalPages: Math.ceil(products.total / products.limit)
-      }
+      data: items,
+      pagination: {
+        total,
+        page,
+        limit,
+      },
     };
 
-    return Response.json(response);
+    return NextResponse.json(response);
   } catch (error) {
     const errorResponse: ErrorResponse = {
       success: false,
-      message: 'Ürünler yüklenirken hata oluştu',
+      message: "Ürün listesi alınamadı",
       error: {
-        code: 'PRODUCTS_FETCH_ERROR',
-        details: error instanceof Error ? error.message : 'Bilinmeyen hata'
-      }
+        code: "PRODUCT_LIST_ERROR",
+        details: error instanceof Error ? error.message : "Bilinmeyen hata",
+      },
     };
 
-    return Response.json(errorResponse, { status: 500 });
+    return NextResponse.json(errorResponse, { status: 500 });
   }
 }
 
-export async function POST(
-  request: Request
-): Promise<Response> {
+export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const product = await productService.createProduct(body);
+    const product = await productRepository.create(body);
     
-    const response: SingleResponse<ProductResponse> = {
+    const response: SingleResponse<Product> = {
       success: true,
-      message: 'Ürün başarıyla oluşturuldu',
       data: product
     };
 
-    return Response.json(response, { status: 201 });
+    return NextResponse.json(response);
   } catch (error) {
     const errorResponse: ErrorResponse = {
       success: false,
-      message: 'Ürün oluşturulurken hata oluştu',
+      message: "Ürün oluşturulamadı",
       error: {
-        code: 'PRODUCT_CREATE_ERROR',
-        details: error instanceof Error ? error.message : 'Bilinmeyen hata'
+        code: "PRODUCT_CREATE_ERROR",
+        details: error instanceof Error ? error.message : "Bilinmeyen hata"
       }
     };
 
-    return Response.json(errorResponse, { status: 500 });
+    return NextResponse.json(errorResponse, { status: 500 });
   }
 }

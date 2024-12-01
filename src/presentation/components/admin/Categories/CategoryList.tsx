@@ -1,62 +1,71 @@
 "use client";
 
-import { Category } from "@/domain/entities/Category";
-import { useState } from "react";
+import { CategoryListItem } from "@/domain/entities/Category";
+import { PaginatedResult } from "@/domain/types/common";
+import Link from "next/link";
 
-export function CategoryList() {
-  const [categories, setCategories] = useState<Category[]>([]);
+interface CategoryListProps {
+  categories: PaginatedResult<CategoryListItem>;
+}
 
+export function CategoryList({ categories }: CategoryListProps) {
   return (
-    <div className="bg-white rounded-lg shadow">
-      <div className="p-6">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-lg font-medium">Kategoriler</h2>
-          <button className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700">
-            Yeni Kategori
-          </button>
-        </div>
-
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead>
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Kategori Adı
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Slug
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Üst Kategori
-              </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                İşlemler
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {categories.map((category) => (
-              <tr key={category.id}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {category.name}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {category.slug}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {category.parentCategory?.name || "-"}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button className="text-indigo-600 hover:text-indigo-900 mr-4">
-                    Düzenle
-                  </button>
-                  <button className="text-red-600 hover:text-red-900">
-                    Sil
-                  </button>
-                </td>
+    <div className="overflow-hidden">
+      <div className="px-4 py-5 sm:p-6">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead>
+              <tr>
+                <th scope="col" className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Kategori Adı
+                </th>
+                <th scope="col" className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Slug
+                </th>
+                <th scope="col" className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Üst Kategori
+                </th>
+                <th scope="col" className="px-6 py-3 bg-gray-50 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  İşlemler
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {categories.items.map((category) => (
+                <tr key={category.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    {category.name}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {category.slug}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {category.parentId ? "Alt Kategori" : "Ana Kategori"}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <Link 
+                      href={`/admin/categories/edit/${category.id}`}
+                      className="text-indigo-600 hover:text-indigo-900 mr-4"
+                    >
+                      Düzenle
+                    </Link>
+                    <button className="text-red-600 hover:text-red-900">
+                      Sil
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div className="bg-gray-50 px-4 py-3 border-t border-gray-200 sm:px-6">
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-gray-700">
+            Toplam <span className="font-medium">{categories.total}</span> kategori
+          </div>
+          {/* Sayfalama buraya eklenecek */}
+        </div>
       </div>
     </div>
   );

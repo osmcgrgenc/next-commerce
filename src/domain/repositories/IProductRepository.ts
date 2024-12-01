@@ -1,15 +1,11 @@
-import { Product } from '../entities/Product';
-
-export interface PaginationOptions {
-  skip: number;
-  limit: number;
-}
+import { Product, CreateProductDTO, UpdateProductDTO } from '../entities/Product';
+import { PaginationParams, PaginatedResult } from '../types/common';
 
 export interface IProductRepository {
-  findAll(options: PaginationOptions): Promise<Product[]>;
+  findAll(params: PaginationParams): Promise<PaginatedResult<Product>>;
   findById(id: string): Promise<Product | null>;
-  create(product: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>): Promise<Product>;
-  update(id: string, product: Partial<Omit<Product, 'id' | 'createdAt' | 'updatedAt'>>): Promise<Product>;
+  create(data: CreateProductDTO): Promise<Product>;
+  update(id: string, data: UpdateProductDTO): Promise<Product>;
   delete(id: string): Promise<void>;
   count(): Promise<number>;
 } 

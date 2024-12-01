@@ -80,33 +80,35 @@ model Wishlist {
 }
 
 model Product {
-  id          String            @id @default(uuid())
-  name        String
-  slug        String            @unique
-  price       Float
-  description String?
-  images      ProductImage[]
-  category    Category          @relation(fields: [categoryId], references: [id])
-  categoryId  String
-  brand       Brand             @relation(fields: [brandId], references: [id])
-  brandId     String
-  stock       Int
-  isActive    Boolean           @default(true)
-  featured    Boolean           @default(false)
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
-  variations  ProductVariation[]
-  orders      Order[]
-  wishlists   Wishlist[]
+  id            String    @id @default(cuid())
+  name          String
+  slug          String    @unique
+  price         Float
+  description   String?
+  stock         Int       @default(0)
+  isActive      Boolean   @default(true)
+  featured      Boolean   @default(false)
+  categoryId    String
+  category      Category  @relation(fields: [categoryId], references: [id])
+  brandId       String
+  brand         Brand     @relation(fields: [brandId], references: [id])
+  images        ProductImage[]
+  orders        Order[]
+  wishlists     Wishlist[]
+  variations    ProductVariation[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 }
 
 model ProductImage {
-  id        String  @id @default(uuid())
+  id        String   @id @default(cuid())
   url       String
-  alt       String
-  isPrimary Boolean @default(false)
+  alt       String?
+  isPrimary Boolean  @default(false)
   productId String
-  product   Product @relation(fields: [productId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model ProductVariation {
@@ -125,20 +127,25 @@ model ProductVarOption {
 }
 
 model Brand {
-  id          String    @id @default(uuid())
+  id          String    @id @default(cuid())
   name        String
   slug        String    @unique
   logoUrl     String?
   description String?
   products    Product[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
 
 model Category {
-  id              String     @id @default(uuid())
-  name            String
-  slug            String     @unique
-  parentId        String?
-  parentCategory  Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
-  childCategories Category[] @relation("CategoryHierarchy")
-  products        Product[]
+  id          String     @id @default(cuid())
+  name        String
+  slug        String     @unique
+  description String?
+  parentId    String?    // Üst kategori ID'si
+  parent      Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryHierarchy")
+  products    Product[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 }

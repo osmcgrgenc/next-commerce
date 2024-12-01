@@ -1,5 +1,3 @@
-import { Brand } from "./Brand";
-import { Category } from "./Category";
 
 export interface ProductImage {
     id: string;
@@ -8,37 +6,35 @@ export interface ProductImage {
     isPrimary: boolean;
 }
 
-export interface ProductVariation {
+export interface ProductCategory {
     id: string;
     name: string;
-    options: Array<{
-        id: string;
-        name: string;
-    }>;
+    slug: string;
 }
 
-export interface ProductBase {
+export interface ProductBrand {
+    id: string;
+    name: string;
+    slug: string;
+    logoUrl?: string;
+    description?: string;
+}
+
+export interface Product {
     id: string;
     name: string;
     slug: string;
     price: number;
     description?: string;
-    images: ProductImage[];
-    category: Category;
-    brand: Brand;
     stock: number;
     isActive: boolean;
     featured: boolean;
+    category: ProductCategory;
+    brand: ProductBrand;
+    images: ProductImage[];
     createdAt: Date;
     updatedAt: Date;
 }
 
-export interface ProductWithVariations extends ProductBase {
-    variations: ProductVariation[];
-}
-
-export interface ProductWithoutVariations extends ProductBase {
-    variations?: never;
-}
-
-export type Product = ProductWithVariations | ProductWithoutVariations;
+export type CreateProductDTO = Omit<Product, 'id' | 'slug' | 'createdAt' | 'updatedAt'>;
+export type UpdateProductDTO = Partial<CreateProductDTO>;
