@@ -1,14 +1,17 @@
 "use client";
 
 import { Order } from "@/domain/entities/Order";
+import { OrderService } from "@/application/services/admin/OrderService";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
-import { DataTable } from "../../ui/DataTable";
 import { useMemo } from "react";
+import { BaseList } from "../../common/BaseList";
 
-export function OrderList() {
-  const orders: Order[] = []; // API'den gelecek
-  
+interface OrderListProps {
+  orderService: OrderService;
+}
+
+export function OrderList({ orderService }: OrderListProps) {
   const columns = useMemo(() => [
     {
       header: "Sipariş No",
@@ -58,5 +61,11 @@ export function OrderList() {
     },
   ], []);
 
-  return <DataTable columns={columns} data={orders} />;
+  return (
+    <BaseList<Order>
+      service={orderService}
+      columns={columns}
+      title="Siparişler"
+    />
+  );
 } 

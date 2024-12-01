@@ -1,25 +1,27 @@
 export interface BaseResponse {
   success: boolean;
-  message: string;
+  message?: string;
 }
 
-export interface PaginatedResponse<T> extends BaseResponse {
-  data: T[];
-  meta: {
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
+export interface ErrorResponse extends BaseResponse {
+  success: false;
+  error: {
+    code: string;
+    details: string;
   };
 }
 
 export interface SingleResponse<T> extends BaseResponse {
+  success: true;
   data: T;
 }
 
-export interface ErrorResponse extends BaseResponse {
-  error: {
-    code: string;
-    details?: string;
+export interface PaginatedResponse<T> extends BaseResponse {
+  success: true;
+  data: T[];
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
   };
-} 
+}

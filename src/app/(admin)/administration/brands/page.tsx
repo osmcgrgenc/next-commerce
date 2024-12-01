@@ -1,5 +1,6 @@
+import { BrandList } from "@/presentation/components/admin/Brands/BrandList";
 import React from "react";
 
 export default function BrandsPage() {
-  return <div>BrandsPage</div>;
+  return <BrandList />;
 }
