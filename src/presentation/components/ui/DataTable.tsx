@@ -4,7 +4,7 @@ import { ReactNode } from "react";
 
 export interface Column<T> {
   header: string;
-  accessor: keyof T | ((item: T) => ReactNode);
+  accessor: ((item: T) => ReactNode) | keyof T;
   align?: "left" | "right" | "center";
 }
 
@@ -25,6 +25,22 @@ export function DataTable<T extends { id: string | number }>({
     return <div className="p-4 text-center">Yükleniyor...</div>;
   }
 
+  const getAlignmentClass = (align?: string) => {
+    switch (align) {
+      case 'right': return 'text-right';
+      case 'center': return 'text-center';
+      default: return 'text-left';
+    }
+  };
+
+  const renderCellContent = (item: T, accessor: Column<T>['accessor']): ReactNode => {
+    if (typeof accessor === 'function') {
+      return accessor(item);
+    }
+    const value = item[accessor];
+    return value as ReactNode;
+  };
+
   return (
     <div className="bg-white rounded-lg shadow overflow-hidden">
       <table className="min-w-full divide-y divide-gray-200">
@@ -33,7 +49,7 @@ export function DataTable<T extends { id: string | number }>({
             {columns.map((column, index) => (
               <th
                 key={index}
-                className={`px-6 py-3 text-${column.align || 'left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}
+                className={`px-6 py-3 ${getAlignmentClass(column.align)} text-xs font-medium text-gray-500 uppercase tracking-wider`}
               >
                 {column.header}
               </th>
@@ -56,13 +72,9 @@ export function DataTable<T extends { id: string | number }>({
                 {columns.map((column, index) => (
                   <td
                     key={index}
-                    className={`px-6 py-4 whitespace-nowrap text-sm ${
-                      column.align === 'right' ? 'text-right' : 'text-left'
-                    }`}
+                    className={`px-6 py-4 whitespace-nowrap text-sm ${getAlignmentClass(column.align)}`}
                   >
-                    {typeof column.accessor === 'function'
-                      ? column.accessor(item)
-                      : item[column.accessor]}
+                    {renderCellContent(item, column.accessor)}
                   </td>
                 ))}
               </tr>

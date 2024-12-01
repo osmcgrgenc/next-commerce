@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 import { PaginatedResponse, ErrorResponse } from "@/domain/types/responses";
 import { Blog } from "@/domain/entities/Blog";
+import { PrismaBlogRepository } from "@/infrastructure/repositories/PrismaBlogRepository";
+
+const blogRepository = new PrismaBlogRepository();
 
 export async function GET(request: Request) {
   try {
@@ -10,41 +12,15 @@ export async function GET(request: Request) {
     const limit = Number(searchParams.get("limit")) || 10;
     const search = searchParams.get("search") || "";
 
-    const skip = (page - 1) * limit;
-
-    const [blogs, total] = await Promise.all([
-      prisma.blog.findMany({
-        where: {
-          OR: [
-            { title: { contains: search, mode: 'insensitive' } },
-            { content: { contains: search, mode: 'insensitive' } },
-          ],
-        },
-        include: {
-          author: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-        },
-        orderBy: { createdAt: 'desc' },
-        skip,
-        take: limit,
-      }),
-      prisma.blog.count({
-        where: {
-          OR: [
-            { title: { contains: search, mode: 'insensitive' } },
-            { content: { contains: search, mode: 'insensitive' } },
-          ],
-        },
-      }),
-    ]);
+    const { items, total } = await blogRepository.findAll({
+      skip: (page - 1) * limit,
+      limit,
+      search
+    });
 
     const response: PaginatedResponse<Blog> = {
       success: true,
-      data: blogs,
+      data: items,
       pagination: {
         total,
         page,
@@ -70,31 +46,15 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    
-    const blog = await prisma.blog.create({
-      data: {
-        title: body.title,
-        slug: body.slug,
-        content: body.content,
-        excerpt: body.excerpt,
-        authorId: body.authorId,
-        isPublished: body.isPublished,
-      },
-      include: {
-        author: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-      },
-    });
-
-    return NextResponse.json(blog);
+    const blog = await blogRepository.create(body);
+    return NextResponse.json({ success: true, data: blog });
   } catch (error) {
-    console.error("Blog oluşturulamadı:", error);
     return NextResponse.json(
-      { error: "Blog oluşturulamadı" },
+      { 
+        success: false,
+        error: "Blog oluşturulamadı",
+        details: error instanceof Error ? error.message : "Bilinmeyen hata"
+      },
       { status: 500 }
     );
   }

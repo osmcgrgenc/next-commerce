@@ -1,82 +1,108 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { PrismaBlogRepository } from "@/infrastructure/repositories/PrismaBlogRepository";
+import { SingleResponse, ErrorResponse } from "@/domain/types/responses";
+import { Blog } from "@/domain/entities/Blog";
+
+const blogRepository = new PrismaBlogRepository();
 
 interface RouteParams {
-  params: {
-    id: string;
-  };
+    params: {
+        id: string;
+    };
 }
 
 export async function GET(request: Request, { params }: RouteParams) {
-  try {
-    const blog = await prisma.blog.findUnique({
-      where: { id: params.id },
-      include: {
-        author: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-      },
-    });
+    try {
+        const blog = await blogRepository.findById(params.id);
+        if (!blog) {
+            const errorResponse: ErrorResponse = {
+                success: false,
+                message: "Blog bulunamadı",
+                error: {
+                    code: "BLOG_NOT_FOUND",
+                    details: "İstenen blog yazısı bulunamadı"
+                }
+            };
+            return NextResponse.json(errorResponse, { status: 404 });
+        }
 
-    if (!blog) {
-      return NextResponse.json(
-        { error: "Blog bulunamadı" },
-        { status: 404 }
-      );
+        const response: SingleResponse<Blog> = {
+            success: true,
+            data: blog
+        };
+        return NextResponse.json(response);
+    } catch (error) {
+        const errorResponse: ErrorResponse = {
+            success: false,
+            message: "Blog detayı alınamadı",
+            error: {
+                code: "BLOG_FETCH_ERROR",
+                details: error instanceof Error ? error.message : "Bilinmeyen hata"
+            }
+        };
+        return NextResponse.json(errorResponse, { status: 500 });
     }
-
-    return NextResponse.json(blog);
-  } catch (error) {
-    console.error("Blog detayı alınamadı:", error);
-    return NextResponse.json(
-      { error: "Blog detayı alınamadı" },
-      { status: 500 }
-    );
-  }
 }
 
 export async function PUT(request: Request, { params }: RouteParams) {
-  try {
-    const body = await request.json();
-    
-    const blog = await prisma.blog.update({
-      where: { id: params.id },
-      data: body,
-      include: {
-        author: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-      },
-    });
+    try {
+        const body = await request.json();
+        const blog = await blogRepository.update(params.id, body);
 
-    return NextResponse.json(blog);
-  } catch (error) {
-    console.error("Blog güncellenemedi:", error);
-    return NextResponse.json(
-      { error: "Blog güncellenemedi" },
-      { status: 500 }
-    );
-  }
+        const response: SingleResponse<Blog> = {
+            success: true,
+            data: blog
+        };
+        return NextResponse.json(response);
+    } catch (error) {
+        const errorResponse: ErrorResponse = {
+            success: false,
+            message: "Blog güncellenemedi",
+            error: {
+                code: "BLOG_UPDATE_ERROR",
+                details: error instanceof Error ? error.message : "Bilinmeyen hata"
+            }
+        };
+        return NextResponse.json(errorResponse, { status: 500 });
+    }
 }
 
 export async function DELETE(request: Request, { params }: RouteParams) {
-  try {
-    await prisma.blog.delete({
-      where: { id: params.id },
-    });
+    try {
+        await blogRepository.delete(params.id);
+        return NextResponse.json({ success: true });
+    } catch (error) {
+        const errorResponse: ErrorResponse = {
+            success: false,
+            message: "Blog silinemedi",
+            error: {
+                code: "BLOG_DELETE_ERROR",
+                details: error instanceof Error ? error.message : "Bilinmeyen hata"
+            }
+        };
+        return NextResponse.json(errorResponse, { status: 500 });
+    }
+}
 
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("Blog silinemedi:", error);
-    return NextResponse.json(
-      { error: "Blog silinemedi" },
-      { status: 500 }
-    );
-  }
-} 
+export async function POST(request: Request) {
+    try {
+        const body = await request.json();
+        const blog = await blogRepository.create(body);
+
+        const response: SingleResponse<Blog> = {
+            success: true,
+            data: blog
+        };
+        return NextResponse.json(response);
+    } catch (error) {
+        const errorResponse: ErrorResponse = {
+            success: false,
+            message: "Blog oluşturulamadı",
+            error: {
+                code: "BLOG_CREATE_ERROR",
+                details: error instanceof Error ? error.message : "Bilinmeyen hata"
+            }
+        };
+        return NextResponse.json(errorResponse, { status: 500 });
+    }
+}
