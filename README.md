@@ -1,163 +1,121 @@
+# E-Ticaret Yönetim Paneli
 
+## Proje Yapısı Analizi ve Öneriler
 
-Mevcut projenizi analiz edelim:
+### 🔍 Tespit Edilen Sorunlar
 
-### 1. Benzer İşler Yapan Kodlar
+1. **Tutarsız Sayfa Yapıları**
+   - Bazı sayfalar "use client" direktifi kullanırken (`customers`, `orders`, `dashboard`), diğerleri kullanmıyor
+   - Sayfa tasarımlarında tutarsızlıklar var (bazıları boş `<div>`, bazıları komponent içeriyor)
 
-1. **API İstekleri İçin Kullanılan Yapılar:**
-```typescript
-// src/utils/api.ts - Genel API client
-const api = {
-    fetch: async <T>(endpoint: string, options?: FetchOptions): Promise<T> => {...}
-    get: async <T>(endpoint: string): Promise<T> => {...}
-    post: async <T>(endpoint: string, body: any): Promise<T> => {...}
-}
+2. **Eksik İmplementasyonlar**
+   - Birçok sayfa sadece placeholder içeriyor (`EditBlogPage`, `BrandPage`, vb.)
+   - CRUD operasyonları için gerekli servisler eksik
 
-// src/modules/catalog/infrastructure/api.ts - Catalog API
-export const catalogApi = {
-    products: {
-        getAll: () => apiClient<PaginatedResponse<Product>>('/products'),
-        getById: (id: number) => apiClient<ApiResponse<Product>>(`/products/${id}`),
-    }
-}
+3. **Tip Güvenliği Sorunları**
+   - Bazı sayfalarda TypeScript tiplerinin tam olarak tanımlanmamış
+   - Props tipleri eksik
 
-// src/lib/api/apiClient.ts - Başka bir API client
-export async function apiClient<T>(endpoint: string, options: RequestInit = {}): Promise<T> {...}
-```
+4. **Dosya Organizasyonu**
+   - `[id]` klasörlerinde tekrar eden yapılar var
+   - Bazı sayfalar için gereksiz alt klasörler oluşturulmuş
 
-2. **Domain Modelleri:**
-```typescript
-// Farklı lokasyonlarda benzer model tanımlamaları
-interface BaseEntity {
-    id: number;
-    createdAt: Date;
-    // ...
-}
+### 🛠 Önerilen İyileştirmeler
 
-interface Product extends BaseEntity {
-    // ...
-}
-```
+1. **Sayfa Yapılarının Standardizasyonu**
+   ```typescript
+   // Önerilen sayfa yapısı
+   export default function EntityPage() {
+     return (
+       <div className="container mx-auto py-6 px-4">
+         <PageHeader title="Başlık" />
+         <EntityComponent />
+       </div>
+     );
+   }
+   ```
 
-### 2. Mevcut Klasör Yapısı
+2. **Servis Katmanı**
+   - Her entity için CRUD operasyonlarını içeren servis sınıfları oluşturulmalı
+   - Repository pattern kullanılmalı
 
-```
-src/
-├── modules/
-│   ├── catalog/
-│   │   ├── domain/
-│   │   ├── infrastructure/
-│   │   └── application/
-│   └── orders/
-│       ├── domain/
-│       ├── infrastructure/
-│       └── application/
-├── utils/
-│   └── api.ts
-├── lib/
-│   └── api/
-└── app/
-    └── api/
-```
+3. **Tip Güvenliği**
+   - Tüm entity'ler için interface'ler tanımlanmalı
+   - Props tipleri için ayrı tip tanımları yapılmalı
 
-### 3. Kullanılan Design Pattern'ler
+4. **Dosya Organizasyonu**
+   ```
+   src/
+   ├── app/
+   │   └── (admin)/
+   │       └── administration/
+   │           ├── [entity]/
+   │           │   ├── page.tsx
+   │           │   ├── create/
+   │           │   └── [id]/
+   │               ├── page.tsx
+   │               └── edit/
+   ├── domain/
+   ├── application/
+   └── presentation/
+   ```
 
-1. **Repository Pattern** (kısmen uygulanmış)
-2. **Module Pattern**
-3. **Clean Architecture** (tam olarak uygulanmamış)
+### 📝 Yapılacaklar Listesi
 
-### 4. Tespit Edilen Sorunlar
+1. **Acil**
+   - [ ] Sayfa yapılarının standardizasyonu
+   - [ ] Eksik servislerin tamamlanması
+   - [ ] Tip tanımlarının eklenmesi
 
-1. **Tutarsız API İstek Yönetimi:**
-   - Birden fazla API client implementasyonu var
-   - Type safety eksiklikleri (`any` kullanımı)
-   - Farklı response format'ları
+2. **Orta Öncelikli**
+   - [ ] Test coverage artırılması
+   - [ ] Error boundary'lerin eklenmesi
+   - [ ] Loading state'lerinin eklenmesi
 
-2. **Dağınık Klasör Yapısı:**
-   - `utils`, `lib` ve `modules` altında benzer işlevler
-   - Domain logic'in dağınık olması
+3. **Düşük Öncelikli**
+   - [ ] Dokümantasyon iyileştirmesi
+   - [ ] Performance optimizasyonları
+   - [ ] Accessibility iyileştirmeleri
 
-3. **Eksik Type Safety:**
-   - `any` kullanımları
-   - Generic type'ların tutarsız kullanımı
+### 🎯 Best Practices
 
-### 5. Önerilen Çözümler
+1. **Sayfa Yapısı**
+   - Her sayfa için standart bir layout kullanılmalı
+   - Başlık, breadcrumb ve action'lar tutarlı olmalı
 
-1. **API İsteklerinin Standardizasyonu:**
-```typescript
-// src/lib/api/types.ts
-export interface ApiRequest<TBody = unknown> {
-    endpoint: string;
-    method: HttpMethod;
-    body?: TBody;
-    headers?: Record<string, string>;
-}
+2. **Komponent Yapısı**
+   - Atomic design prensipleri uygulanmalı
+   - Props interface'leri dokümante edilmeli
 
-export interface ApiResponse<TData> {
-    data: TData;
-    success: boolean;
-    message?: string;
-}
-```
+3. **State Yönetimi**
+   - Server ve client state'leri ayrılmalı
+   - Uygun caching stratejileri belirlenmeli
 
-2. **Merkezi API Client:**
-```typescript:src/lib/api/client.ts
-export class ApiClient {
-    private static instance: ApiClient;
+4. **Error Handling**
+   - Global error boundary kullanılmalı
+   - Kullanıcı dostu hata mesajları gösterilmeli
 
-    private constructor() {}
+### 📚 Kullanılan Teknolojiler
 
-    public static getInstance(): ApiClient {
-        if (!ApiClient.instance) {
-            ApiClient.instance = new ApiClient();
-        }
-        return ApiClient.instance;
-    }
+- Next.js 14
+- TypeScript
+- Tailwind CSS
+- Prisma
+- React Hook Form
+- Zod
 
-    public async request<TResponse, TBody = unknown>(
-        config: ApiRequest<TBody>
-    ): Promise<ApiResponse<TResponse>> {
-        // Implementation
-    }
-}
-```
+### 🔒 Güvenlik Kontrol Listesi
 
-3. **Önerilen Yeni Klasör Yapısı:**
-```
-src/
-├── lib/
-│   ├── api/
-│   │   ├── client.ts
-│   │   ├── types.ts
-│   │   └── errors.ts
-│   └── utils/
-├── modules/
-│   ├── shared/
-│   │   ├── types/
-│   │   └── models/
-│   ├── catalog/
-│   │   ├── domain/
-│   │   ├── infrastructure/
-│   │   └── application/
-│   └── orders/
-└── app/
-```
+- [ ] Input validasyonları
+- [ ] CSRF koruması
+- [ ] Rate limiting
+- [ ] Authentication/Authorization
+- [ ] API route koruması
 
-### 6. Aksiyon Planı
+### 🚀 Performance Kontrol Listesi
 
-1. **Öncelikli Yapılacaklar:**
-   - API client'ların birleştirilmesi
-   - Type safety'nin sağlanması
-   - Response/Request type'larının standardizasyonu
-
-2. **Orta Vadeli Hedefler:**
-   - Clean Architecture'ın tam implementasyonu
-   - Test coverage'ın artırılması
-   - Error handling mekanizmasının geliştirilmesi
-
-3. **Uzun Vadeli Hedefler:**
-   - Module federation implementasyonu
-   - Performance optimizasyonları
-   - Monitoring ve logging altyapısı
-
-Bu analiz ve öneriler doğrultusunda, öncelikle API isteklerinin standardizasyonunu ve type safety'yi sağlamanızı öneriyorum. Ardından klasör yapısını düzenleyerek Clean Architecture'a uygun hale getirilebilir.
+- [ ] Image optimizasyonu
+- [ ] Code splitting
+- [ ] Lazy loading
+- [ ] Caching stratejileri
+- [ ] Bundle size optimizasyonu
